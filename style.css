@@ -1,0 +1,434 @@
+:root {
+    /* DARK LIQUID GLASS THEME */
+    --bg-color: #050505;
+    --text-color: #f8fafc;
+
+    /* Neon Accents */
+    --accent-primary: #8b5cf6;
+    /* Violet */
+    --accent-secondary: #06b6d4;
+    /* Cyan */
+    --accent-highlight: #f43f5e;
+    /* Rose */
+
+    /* Glass Vars */
+    --glass-bg: rgba(20, 20, 20, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-highlight: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+
+    --card-hover-bg: rgba(255, 255, 255, 0.05);
+
+    /* Plyr Overrides */
+    --plyr-color-main: var(--accent-primary);
+    --plyr-video-controls-background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75));
+    --plyr-menu-background: rgba(20, 20, 20, 0.95);
+    --plyr-menu-color: #fff;
+    --plyr-range-thumb-height: 16px;
+    --plyr-range-track-height: 6px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* Deep Void Gradient */
+    background: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #000000 60%);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fluid Liquid Orbs (Background decorations) */
+body::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: 10%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+    filter: blur(120px);
+    z-index: -1;
+    pointer-events: none;
+    animation: drift 20s infinite alternate ease-in-out;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    right: 5%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+    filter: blur(100px);
+    z-index: -1;
+    pointer-events: none;
+    animation: drift 25s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes drift {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(50px, 30px);
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Header */
+header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(10, 10, 10, 0.5);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.logo svg {
+    stroke: url(#grad1);
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+}
+
+/* Layout */
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    gap: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+}
+
+/* Video Section */
+.main-player {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Aspect Ratio Controls */
+.aspect-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.aspect-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.aspect-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.aspect-btn.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+/* Video Wrapper */
+.video-wrapper-box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.video-container {
+    width: 100%;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+        0 25px 60px -12px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    /* Default Aspect Ratio */
+    aspect-ratio: 16 / 9;
+}
+
+/* Force Plyr to fill */
+.plyr {
+    height: 100%;
+    width: 100%;
+}
+
+/* Info Section - 3D Glass Card */
+.video-info {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    backdrop-filter: blur(25px);
+}
+
+.video-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: #fff;
+    line-height: 1.3;
+}
+
+.card-meta {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.video-desc {
+    margin-top: 1rem;
+    color: #e2e8f0;
+    line-height: 1.6;
+    font-size: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+/* Sidebar */
+.sidebar {
+    background: rgba(10, 10, 10, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    height: fit-content;
+}
+
+.sidebar-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Related List */
+.related-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 5px;
+    /* Prevent scrollbar from overlapping content */
+}
+
+.related-card {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.related-card:hover {
+    background: var(--card-hover-bg);
+}
+
+.related-card.active {
+    background: rgba(139, 92, 246, 0.1);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.related-thumb {
+    width: 120px;
+    height: 68px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.related-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.related-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.related-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+    color: #f1f5f9;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.related-date {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* Mobile Tweaks */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem 0.5rem;
+    }
+
+    .video-info {
+        padding: 1rem;
+        border-radius: 0;
+        /* Flush on mobile? maybe not */
+        border-radius: 12px;
+    }
+
+    .video-title {
+        font-size: 1.25rem;
+    }
+
+    .aspect-controls {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    /* Mobile: Adjust Plyr controls */
+    .plyr__controls {
+        padding: 5px !important;
+    }
+
+    .plyr__control {
+        padding: 5px !important;
+    }
+
+    /* Hide less important controls on very small screens */
+    @media (max-width: 360px) {
+
+        .plyr__volume,
+        .plyr__time {
+            display: none;
+        }
+    }
+
+    /* Ensure progress bar is visible on mobile */
+    .plyr__progress__container {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+/* Container for Rotated Video */
+.video-container.rotated-vertical {
+    aspect-ratio: 9 / 16 !important;
+    /* Force vertical AR */
+}
+
+/* Video Element when rotated 90/270 */
+.plyr video.rotated-90,
+.plyr video.rotated-270 {
+    /* We don't need scale if we use object-fit: contain on the video element itself, 
+       but Plyr might override. 
+       Better approach: Rotate and Scale to FIT the new container. 
+       If container is 9:16 and video is 16:9, rotating 90deg makes it 9:16 visually.
+       But standard rotation logic needs scale correction if it overflows. */
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+/* Custom Overlay Rotation Button */
+.custom-rotate-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 50;
+    /* Above (most) Plyr layers, but check pointer-events */
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+.video-container:hover .custom-rotate-btn,
+.plyr--paused .custom-rotate-btn,
+.plyr--stopped .custom-rotate-btn {
+    opacity: 1;
+}
+
+.custom-rotate-btn:hover {
+    background: var(--accent-primary);
+    transform: rotate(90deg);
+}
+
+/* Ensure video transform works */
+.plyr video {
+    transition: transform 0.3s ease;
+}

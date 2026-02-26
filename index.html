@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Channel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" /> <!-- Violet -->
+                        <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" /> <!-- Cyan -->
+                    </linearGradient>
+                </defs>
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            VidFlow
+        </a>
+    </header>
+
+    <div class="container">
+        <div class="main-player">
+            <!-- Custom Video Player Wrapper -->
+            <div class="video-wrapper-box">
+                <div class="aspect-controls">
+                    <button class="aspect-btn active" data-ratio="16/9">16:9</button>
+                    <button class="aspect-btn" data-ratio="4/3">4:3</button>
+                    <button class="aspect-btn" data-ratio="1/1">1:1</button>
+                    <button class="aspect-btn" data-ratio="fit">Fit</button>
+                </div>
+
+                <div class="video-container" id="videoContainer">
+                    <video id="player" playsinline controls>
+                        <!-- Source will be set via JS -->
+                    </video>
+                    <!-- Custom Rotate Control (Overlay) -->
+                    <button class="custom-rotate-btn" id="rotateBtn" title="Rotate Video">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor"
+                                d="M7.11 8.53L5.79 7.21C2.46 10.54 2.46 15.96 5.79 19.29C9.12 22.62 14.54 22.62 17.87 19.29C21.2 15.96 21.2 10.54 17.87 7.21L16.55 8.53C19.16 11.14 19.16 15.36 16.55 17.97C13.94 20.58 9.72 20.58 7.11 17.97C4.5 15.36 4.5 11.14 7.11 8.53Z" />
+                            <path fill="currentColor"
+                                d="M12.44 3.77L10.67 5.54L14.21 9.08L17.75 5.54L15.98 3.77L14.21 2L12.44 3.77Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="video-info">
+                <h1 class="video-title" id="vidTitle">Loading...</h1>
+                <div class="card-meta" id="vidDate"></div>
+                <div class="video-desc" id="vidDesc"></div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h3 class="sidebar-title">Up Next</h3>
+            <div id="relatedList" class="related-list">
+                <!-- Related videos here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <!-- HLS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="data.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let videoId = urlParams.get('v');
+
+        // Initialize Plyr
+        const player = new Plyr('#player', {
+            controls: [
+                'play-large', // The large play button in the center
+                'restart', // Restart playback
+                'rewind', // Rewind by the seek time (default 10 seconds)
+                'play', // Play/pause playback
+                'fast-forward', // Fast forward by the seek time (default 10 seconds)
+                'progress', // The progress bar and scrubber for playback and buffering
+                'current-time', // The current time of playback
+                'duration', // The full duration of the media
+                'mute', // Toggle mute
+                'volume', // Volume control
+                'captions', // Toggle captions
+                'settings', // Settings menu
+                'pip', // Picture-in-picture (currently Safari only)
+                'airplay', // Airplay (currently Safari only)
+                'fullscreen', // Toggle fullscreen
+            ],
+            // Custom settings
+            fullscreen: { enabled: true, fallback: true, iosNative: false } // Disable native iOS to allow rotation? Experiment.
+        });
+
+        // Aspect Ratio Logic
+        const videoContainer = document.getElementById('videoContainer');
+        const aspectBtns = document.querySelectorAll('.aspect-btn');
+        const rotateBtn = document.getElementById('rotateBtn');
+        let currentRotation = 0;
+
+        aspectBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class
+                aspectBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const ratio = btn.dataset.ratio;
+                if (ratio === 'fit') {
+                    videoContainer.style.aspectRatio = 'unset';
+                    videoContainer.style.height = 'auto';
+                } else {
+                    videoContainer.style.aspectRatio = ratio;
+                    videoContainer.style.height = 'auto';
+                }
+            });
+        });
+
+        // --- Rotation Logic ---
+        function applyRotation(deg) {
+            const videoElement = document.querySelector('.plyr video');
+            const videoContainer = document.getElementById('videoContainer');
+
+            if (!videoElement || !videoContainer) return;
+
+            // Reset classes
+            videoElement.classList.remove('rotated-90', 'rotated-270');
+            videoContainer.classList.remove('rotated-vertical');
+
+            // Standardize degree (0, 90, 180, 270)
+            const rotation = deg % 360;
+
+            if (rotation === 90 || rotation === 270) {
+                // Vertical Orientation
+                videoContainer.classList.add('rotated-vertical');
+
+                // Let's calculate the scale needed. 
+                // Container is now 9:16 (roughly, or Height > Width).
+                // Video visual is now Vertical. 
+                // To fit the video element (which is wide) into the tall container:
+                // We rotate it. 
+                // But we must also ensure it scales to fill the box without overflow/cropping.
+
+                // Get dimensions (if available)
+                const vw = videoElement.videoWidth;
+                const vh = videoElement.videoHeight;
+
+                let scale = 1;
+                if (vw && vh) {
+                    // We need to scale UP to fill the container because object-fit: contain 
+                    // shrunk it to fit the 'wrong' dimension before rotation.
+                    // Scale factor is the max Aspect Ratio to flip it.
+                    if (vw > vh) {
+                        scale = vw / vh;
+                    } else {
+                        scale = vh / vw;
+                    }
+                } else {
+                    // Fallback
+                    scale = 1.777;
+                }
+
+                videoElement.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+
+                // If 270, maybe different? No, same aspect.
+            } else {
+                // Horizontal (0 or 180)
+                // 180 is just upside down, same aspect.
+                videoElement.style.transform = `rotate(${rotation}deg)`;
+                // Container stays 16:9 (default CSS) or whatever User set.
+                // If user set Fit/4:3, it stays.
+
+                // If we want to restore user preference?
+                // The class removal handles the 'rotated-vertical' override.
+                // But we might need to re-apply any active aspect-btn...
+                const activeBtn = document.querySelector('.aspect-btn.active');
+                if (activeBtn) activeBtn.click(); // Re-trigger listener to fix AR
+            }
+        }
+
+        rotateBtn.addEventListener('click', () => {
+            currentRotation = (currentRotation + 90) % 360;
+            applyRotation(currentRotation);
+            if (videoId) localStorage.setItem(`vf-rot-${videoId}`, currentRotation);
+        });
+
+        // --- Fullscreen Orientation Logic ---
+        player.on('enterfullscreen', event => {
+            // Try to lock orientation if video is vertical-ish
+            // Note: Lock returns a promise, check compatibility
+            if (screen.orientation && screen.orientation.lock) {
+                const videoElement = document.querySelector('.plyr video');
+                if (videoElement && (videoElement.videoHeight > videoElement.videoWidth)) {
+                    // Vertical video
+                    screen.orientation.lock('portrait').catch(e => {
+                        // console.log('Orientation lock failed', e);
+                        // Expected on some devices/browsers
+                    });
+                } else {
+                    screen.orientation.lock('landscape').catch(e => { });
+                }
+            }
+        });
+
+        player.on('exitfullscreen', event => {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        });
+
+
+        // --- App Logic ---
+
+        if (window.videoData && window.videoData.length > 0) {
+            let currentVideo = null;
+            if (videoId) currentVideo = window.videoData.find(v => v.id === videoId);
+            if (!currentVideo) {
+                currentVideo = window.videoData[0];
+                videoId = currentVideo.id;
+            }
+
+            // Update Metadata
+            document.title = `${currentVideo.title} - VidFlow`;
+            document.getElementById('vidTitle').textContent = currentVideo.title;
+            document.getElementById('vidDesc').textContent = currentVideo.description;
+            document.getElementById('vidDate').textContent = new Date(currentVideo.date).toLocaleDateString();
+
+            // Load saved rotation
+            const savedRot = localStorage.getItem(`vf-rot-${videoId}`);
+            if (savedRot) {
+                currentRotation = parseInt(savedRot);
+                // Delay apply as Plyr inits
+                setTimeout(() => applyRotation(currentRotation), 500);
+            }
+
+            // Load Source
+            const video = document.getElementById('player');
+            const source = currentVideo.playlist;
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(source);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    // video.play(); // Auto-play policies often block this
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = source;
+            } else {
+                // Fallback for non-HLS (if any) or error
+                console.error("HLS not supported");
+            }
+
+            // Render Sidebar
+            const relatedList = document.getElementById('relatedList');
+            window.videoData.forEach(v => {
+                const isAssert = (v.id === videoId) ? 'active' : '';
+                const link = document.createElement('a');
+                link.href = `index.html?v=${v.id}`;
+                link.className = `related-card ${isAssert}`;
+                link.innerHTML = `
+                    <div class="related-thumb">
+                        <img src="${v.thumbnail}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCIgZmlsbD0iIzMzMyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgLz48L3N2Zz4='">
+                    </div>
+                    <div class="related-info">
+                        <div class="related-title">${v.title}</div>
+                        <div class="related-date">${new Date(v.date).toLocaleDateString()}</div>
+                    </div>
+                `;
+                relatedList.appendChild(link);
+            });
+        }
+    </script>
+</body>
+
+</html>
